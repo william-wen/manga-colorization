@@ -9,3 +9,4 @@ images_with_faces/
 images_without_faces/
 meta_017.json
 meta_017_processed.json
+__pycache__/
