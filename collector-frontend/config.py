@@ -11,3 +11,9 @@ class Config:
     SQLALCHEMY_DATABASE_URI = "mysql+pymysql://root:Willlu5963!@localhost:3306/colorizer"
     SQLALCHEMY_ECHO = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    # my own env variables
+    CORS_HEADERS = "Content-Type"
+    UPLOAD_FOLDER = "app/uploads/"
+    MODEL_UPLOAD_FOLDER = "app/model_outputs/"
+    GROUND_TRUTH = "app/ground_truth"
