@@ -14,6 +14,6 @@ class Config:
 
     # my own env variables
     CORS_HEADERS = "Content-Type"
-    UPLOAD_FOLDER = "app/uploads/"
-    MODEL_UPLOAD_FOLDER = "app/model_outputs/"
-    GROUND_TRUTH = "app/ground_truth"
+    UPLOAD_FOLDER = "src/img_storage/uploads/"
+    MODEL_UPLOAD_FOLDER = "src/img_storage/model_predictions/"
+    GROUND_TRUTH = "src/img_storage/ground_truth/"

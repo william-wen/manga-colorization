@@ -23,8 +23,7 @@ class ImageInsert extends Component {
         axios.post("http://localhost:5000/colorize", fd)
             .then(res => {
                 this.props.history.push({
-                    pathname: "/confirmation",
-                    data: res
+                    pathname: "/confirmation/" + res["data"]["id"],
                 });
             }).catch(e => {
                 console.log(e)

@@ -2,6 +2,7 @@ import flask
 import json
 import os
 import time
+import shutil
 from flask import Blueprint, request, render_template
 from flask import current_app as app
 from flask_cors import cross_origin
@@ -13,20 +14,11 @@ colorizer = Blueprint("colorizer", __name__)
 @colorizer.route("/")
 @cross_origin()
 def index():
-    return "Welcome to the NHK"
-
-@colorizer.route("/time")
-def get_current_time():
-    return {"time": time.time()}
+    return "Welcome to the Manga Colorizer!"
 
 @colorizer.route("/colorize", methods=["POST"])
 @cross_origin()
 def colorize():
-    """
-    Colorizes 1 or more images.
-
-    Return the colorized image, the predicted main tag, and the predicted side tags.
-    """
 
     file = request.files.get("image")
     print("\n\n\n")
@@ -74,40 +66,89 @@ def colorize():
     colorized_img_and_tags = {
         "predicted_main_tag": predicted_main_tag,
         "predicted_tags": predicted_tags,
-        "image_directory": "model_outputs/{}".format(image_serial)
+        "image_directory": image_serial,
+        "id": image_id
     }
 
     return colorized_img_and_tags
 
-@colorizer.route("/correction", methods=["POST"])
-def correction():
-    """
-    File: The correct image
-    Tags: The rest of the tags for that Image.
+@colorizer.route("/model-output", methods=["GET"])
+@cross_origin()
+def model_output():
+    image_id = request.args["id"]
 
-    Adds the ground truth tags to the MySQL database and the image to the correct folder.
-    """
-    img_tags = json.loads(request.data)
+    image = Image.query.filter_by(id=image_id).first()
+    predicted_tags_query = PredictedTags.query.filter_by(image_id=image_id).all()
+    predicted_tags = [tags.tag_number for tags in predicted_tags_query]
+
+    return {
+        "image_serial": image.image_serial,
+        "predicted_main_tag": image.predicted_main_tag,
+        "predicted_tags": predicted_tags
+    }
+
+@colorizer.route("/correct-output/<id>", methods=["PATCH"])
+@cross_origin()
+def correct_output(id):
+
+    tag_information = json.loads(request.data)
+    print("\n")
+    print(tag_information)
+    print("\n")
     
-    # extract the image row 
-    image = Image.query.filter_by(image_serial=img_tags.get("image_serial")).first()
-    image_id = image.id
+    # update the image with actual_main_tag
+    image = Image.query.filter_by(id=id).first()
+    image.actual_main_tag = tag_information["actual_main_tag"]
+    insert_db(image)
 
-    for tag_number in img_tags.get("tags"):
-        actual_tags = ActualTags(image_id=image_id, tag_name=tag_mappings.get(tag_number), tag_number=tag_number)
+    # places values in actual_tags table
+    for tag_number in tag_information.get("tags"):
+        actual_tags = ActualTags(image_id=image.id, tag_name=tag_mappings.get(tag_number), tag_number=tag_number)
         insert_db(actual_tags)
 
-    return "Success"
+    # copy the file from uploads to ground_truth
+    shutil.copyfile(
+        "src/img_storage/uploads/{}".format(image.image_serial), 
+        "src/img_storage/ground_truth/{}".format(image.image_serial)
+    )
 
-@colorizer.route("/correct-tags/<id>", methods=["PATCH"])
-def correct_tags(id):
-    """
-    Tag: The main tag for that image.
-    """
-    print(id)
-    print(request.form["data"])
+    return ""
 
-    return "In Progress"
+@colorizer.route("/incorrect-output", methods=["POST"])
+@cross_origin()
+def incorrect_output():
+
+    tag_information = json.loads(request.data)
+    
+    # update the image with actual_main_tag
+    image = Image.query.filter_by(id=id).first()
+    image.actual_main_tag = tag_information["actual_main_tag"]
+    insert_db(image)
+
+    # places values in actual_tags table
+    for tag_number in tag_information.get("tags"):
+        actual_tags = ActualTags(image_id=image.id, tag_name=tag_mappings.get(tag_number), tag_number=tag_number)
+        insert_db(actual_tags)
+
+    # upload the image to ground truth folder
+    file = request.files.get("image")
+    file.save(os.path.join(app.config["GROUND_TRUTH"], image.image_serial))
+
+    return ""
+
+@colorizer.route("/test", methods=["GET"])
+@cross_origin()
+def test():
+    
+    print("\n\n\n")
+    print(request.data)
+    print(request.files)
+    print(request.form)
+    print(request.args["id"])
+    print(request.json)
+    print("\n\n\n")
+
+    return "success"
 
 # Helper Functions
 def insert_db(item):
