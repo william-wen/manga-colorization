@@ -1,3 +1,8 @@
+from sqlalchemy.exc import IntegrityError
+from app.models import db
+from app.exceptions.Error import Error
+
+# support mappings
 tag_mappings = {
     27: "女の子",
     48486: "獣娘",
@@ -23,3 +28,24 @@ reverse_tag_mappings = {
     'ソードアートアバター&武器コンテスト': 443608,
     'ハイペリオン': 459530
  }
+
+# Helper Functions
+def insert_db(item):
+    """
+    Places a database object into the database. Uses SQLAlchemy's built in
+    error codes to perform error checking.
+
+    Parameters:
+        item: The database object to store into the db.
+    """
+    try:
+        db.session.add(item)
+        db.session.commit()
+    except IntegrityError as e:
+        status_code = e.orig.args[0]
+        message = e.orig.args[1]
+        raise Error(
+            "Database_Error",
+            message,
+            status_code
+        )

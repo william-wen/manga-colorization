@@ -3,7 +3,7 @@ from . import db
 class Image(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
-    original_name = db.Column(db.String(200), unique=True, nullable=False)
+    original_name = db.Column(db.String(200), nullable=False)
     image_serial = db.Column(db.String(200), unique=True, nullable=False)
     predicted_main_tag = db.Column(db.Integer)
     actual_main_tag = db.Column(db.Integer)

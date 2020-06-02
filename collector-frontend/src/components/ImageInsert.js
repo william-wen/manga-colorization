@@ -1,12 +1,11 @@
 import React, { Component } from 'react';
 import '../styles/ImageInsert.css';
 import axios from "axios";
-import { BrowserRouter as Router, Link } from "react-router-dom";
-import Confirmation from "./Confirmation"
 
 class ImageInsert extends Component {
     state = {
-        selectedFile: null
+        selectedFile: null,
+        displayWarning: false
     }
 
     fileSelectedHandler = event => {
@@ -17,25 +16,38 @@ class ImageInsert extends Component {
     }
 
     fileUploadHandler = () => {
-        const fd = new FormData();
-        fd.append("image", this.state.selectedFile, this.state.selectedFile.name);
-        console.log(fd)
-        axios.post("http://localhost:5000/colorize", fd)
-            .then(res => {
-                this.props.history.push({
-                    pathname: "/confirmation/" + res["data"]["id"],
+        if (this.state.selectedFile) {
+            const fd = new FormData();
+            fd.append("image", this.state.selectedFile, this.state.selectedFile.name);
+            console.log(fd)
+            axios.post("http://localhost:5000/colorize", fd)
+                .then(res => {
+                    this.props.history.push({
+                        pathname: "/confirmation/" + res["data"]["id"],
+                    });
+                }).catch(e => {
+                    console.log(e)
                 });
-            }).catch(e => {
-                console.log(e)
-            });
+        } else {
+            this.setState({
+                displayWarning: true
+            })
+        }
     }
 
     render() {
+        let warning = this.state.displayWarning ?
+            <p style={{ color: "red", fontSize: "20px" }}> Please upload a file. </p> :
+            null
         return (
             <div className="App">
                 <header className="App-header">
-                    <input type="file" onChange={this.fileSelectedHandler} />
-                    <button onClick={this.fileUploadHandler}>Upload</button>
+                    <div className="centered-box">
+                        <h1>Welcome to the Manga Colorizer</h1>
+                        <input type="file" onChange={this.fileSelectedHandler} />
+                        <button onClick={this.fileUploadHandler}>Upload</button>
+                        {warning}
+                    </div>
                 </header>
             </div>
         );

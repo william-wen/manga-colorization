@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import Form from "react-bootstrap/Form";
-import Checkbox from "@material-ui/core/Checkbox";
+import axios from "axios";
+import '../styles/Correction.css';
 
 class Correction extends Component {
     constructor(props) {
@@ -8,10 +8,19 @@ class Correction extends Component {
         this.state = {
             selectedOption: null,
             selectedCheckBoxes: {
-                "option1": false,
-                "option2": false,
-                "option3": false
-            }
+                "女の子": false,
+                "獣娘": false,
+                "泣カセテミロ": false,
+                "MIKUMIKUDANCE": false,
+                "アナログ": false,
+                "落書キ": false,
+                "イクシオンサーガコンテスト": false,
+                "擬人化": false,
+                "ソードアートアバター&武器コンテスト": false,
+                "ハイペリオン": false
+            },
+            selectedFile: null,
+            displayWarning: false
         }
     }
 
@@ -31,16 +40,51 @@ class Correction extends Component {
 
     handleFormSubmit = (e) => {
         e.preventDefault();
-        console.log("Main Tag", this.state.selectedOption);
+
+        if (this.state.selectedOption && this.state.selectedFile) {
+            let formData = new FormData();
+            let radio = this.state.selectedOption;
+
+            let checkList = Object.keys(this.state.selectedCheckBoxes);
+            let filteredCheckList = checkList.filter(box => this.state.selectedCheckBoxes[box]);
+
+            formData.set("actual_main_tag", radio);
+            formData.set("tags", filteredCheckList);
+            formData.append("image", this.state.selectedFile, this.state.selectedFile.name);
+
+            axios({
+                method: "patch",
+                url: "http://localhost:5000/incorrect-output/" + this.props.id,
+                data: formData,
+                headers: { "Content-Type": "multipart/form-data" }
+            }).then(res => {
+                this.props.history.push("/thank-you");
+            }).catch(e => {
+                console.log(e);
+            });
+        } else {
+            this.setState({
+                displayWarning: true
+            })
+        }
+    }
+
+    fileSelectedHandler = event => {
+        this.setState({
+            selectedFile: event.target.files[0]
+        })
     }
 
     renderRadios = () => {
-        let options = ["option1", "option2", "option3"]
+        let options = ["女の子", "獣娘", "泣カセテミロ", "MIKUMIKUDANCE", "アナログ",
+            "落書キ", "イクシオンサーガコンテスト", "擬人化", "ソードアートアバター&武器コンテスト",
+            "ハイペリオン"]
         let radios = options.map((option, index) => (
             <div className="radio">
                 <label>
                     <input
                         key={index}
+                        className="ticks"
                         type="radio"
                         value={option}
                         checked={this.state.selectedOption == option}
@@ -51,15 +95,19 @@ class Correction extends Component {
             </div>
         ))
         return radios;
+
     }
 
     renderCheckboxes = () => {
-        let checkbox = ["checkbox1", "checkbox2", "checkbox3"]
+        let checkbox = ["女の子", "獣娘", "泣カセテミロ", "MIKUMIKUDANCE", "アナログ",
+            "落書キ", "イクシオンサーガコンテスト", "擬人化", "ソードアートアバター&武器コンテスト",
+            "ハイペリオン"]
         let checkboxes = checkbox.map((checkbox, index) => (
             <div className="checkbox">
                 <label>
                     <input
                         key={index}
+                        className="ticks"
                         type="checkbox"
                         value={checkbox}
                         checked={this.state.selectedCheckBoxes[checkbox]}
@@ -73,16 +121,20 @@ class Correction extends Component {
     }
 
     render() {
-        console.log(this.props.id)
+        let warning = this.state.displayWarning ?
+            <p style={{ color: "red", fontSize: "20px" }}> Please upload a file. </p> :
+            null
         return (
             <div>
                 <form onSubmit={this.handleFormSubmit}>
-                    <h2>Please upload the correctly colored image.</h2>
-                    <h2>Which one is the main tag?</h2>
+                    <h2 style={{ marginTop: "20px" }}>Which one is the main tag?*</h2>
                     {this.renderRadios()}
                     <h2>What are the other tags associated with the image?</h2>
                     {this.renderCheckboxes()}
+                    <h2>Please upload the correctly colored image.*</h2>
+                    <input type="file" onChange={this.fileSelectedHandler} />
                     <button className="btn btn-default" type="submit">Save</button>
+                    {warning}
                 </form>
             </div>
         );

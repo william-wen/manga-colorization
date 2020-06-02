@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import axios from "axios";
 import Button from "react-bootstrap/Button";
 import { Link } from "react-router-dom";
+import '../styles/Confirmation.css';
 
 class Confirmation extends Component {
     constructor(props) {
@@ -18,7 +19,6 @@ class Confirmation extends Component {
             }
         })
             .then(res => {
-                console.log(res)
                 this.setState({
                     imageData: res["data"]
                 })
@@ -44,26 +44,27 @@ class Confirmation extends Component {
 
     render() {
         // initialize variables
-        console.log(this.state.imageData)
         const { imageData } = this.state;
         let image = null;
 
-        if (imageData) {
-            console.log("../img_storage/uploads/" + imageData["image_serial"])
-            image = require("../img_storage/uploads/" + imageData["image_serial"])
+        try {
+            image = require("../img_storage/model_predictions/" + imageData["image_serial"]);
+        } catch (err) {
+            console.log(err);
         }
 
         return (
             <div className="confirmation">
                 <h1>Is your manga page an acceptable color?</h1>
-                <img src={image} alt="Colorized Image" />
+                <img src={image} alt="Colorized Image" className="image-size" />
+                <h1>Select an Option:</h1>
                 <Link to="/thank-you">
-                    <Button variant="success" onClick={this.yesHandler}>
+                    <Button className="confirmation-button" variant="success" onClick={this.yesHandler}>
                         Yes
                     </Button>
                 </Link>
                 <Link to={"/correction/" + this.props.id}>
-                    <Button variant="danger" onClick={this.noHandler}>
+                    <Button className="confirmation-button" variant="danger" onClick={this.noHandler}>
                         No
                     </Button>
                 </Link>

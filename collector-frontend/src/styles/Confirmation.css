@@ -1,0 +1,9 @@
+.confirmation-button {
+    margin: 10px;
+}
+
+.image-size {
+    max-width: 500px;
+    max-height: 500px;
+    object-fit: cover;
+}
