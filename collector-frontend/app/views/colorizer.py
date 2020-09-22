@@ -299,8 +299,6 @@ def incorrect_output(id):
     if tags:
         # check if tags exist
         tag_list = tags.split(",")
-        print("\n\n\n")
-        print(tag_list)
         for indiv_tag in tag_list:
             if not reverse_tag_mappings.get(indiv_tag):
                 raise Error(
